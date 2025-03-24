@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import Home from './Home'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import WelcomePage from './components/WelcomePage'; // Create this component if it doesn't exist
+import RegisterPage from './components/RegisterPage';
+import LoginPage from './components/LoginPage';
+import HomePage from './components/HomePage';
 
 function App() {
-  const [count, setCount] = useState(0)
-
-
-
   return (
-    <div className="max-w-lg mx-auto mt-10">
-      <Home />
+    <div>
+      <Routes>
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/home" element={<HomePage />} />
+      </Routes>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
