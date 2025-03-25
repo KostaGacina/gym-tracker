@@ -5,13 +5,16 @@ import Button from '@mui/material/Button';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+axios.defaults.withCredentials = true;
+
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
+        email: '',
         username: '',
         password: ''
     });
 
-    const navigate = useNavigate(); // React Router hook for navigation
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -21,9 +24,11 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/register', formData);
-            alert(response.data.message); // Show success message
-            navigate('/home'); // Redirect to /home after successful registration
+            const response = await axios.post('http://localhost:5000/register', formData, {
+                withCredentials: true
+            });
+            alert(response.data.message);
+            navigate('/login');
         } catch (error) {
             console.error('Error registering user:', error);
             alert('Failed to register user');
@@ -37,9 +42,22 @@ export default function RegisterPage() {
                 <Box sx={{ marginBottom: 2 }}>
                     <TextField
                         fullWidth
+                        id="email"
+                        name="email"
+                        label="Email"
+                        type="email"
+                        variant="outlined"
+                        value={formData.email}
+                        onChange={handleChange}
+                    />
+                </Box>
+                <Box sx={{ marginBottom: 2 }}>
+                    <TextField
+                        fullWidth
                         id="username"
                         name="username"
                         label="Username"
+                        type="text"
                         variant="outlined"
                         value={formData.username}
                         onChange={handleChange}
