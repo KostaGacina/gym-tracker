@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { registerUser, loginUser, logoutUser } = require('./controllers/users');
+const { registerUser, loginUser, logoutUser, enterStats, choosePlan } = require('./controllers/users');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
@@ -50,6 +50,8 @@ mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTop
 app.post('/register', registerUser);
 app.post('/login', loginUser);
 app.post('/logout', logoutUser);
+app.post('/enterstats', enterStats);
+app.post('/chooseplan', choosePlan);
 
 // API endpoint to get the currently logged-in user's information
 app.get('/user', (req, res) => {

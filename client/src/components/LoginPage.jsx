@@ -26,8 +26,14 @@ export default function LoginPage() {
             const response = await axios.post('http://localhost:5000/login', formData, {
                 withCredentials: true // Explicitly include credentials
             });
-            alert(response.data.message); // Show success message
-            navigate('/home'); // Redirect to /home after successful login
+
+            // Check if user has completed initial setup
+            if (response.data.hasCompletedSetup) {
+                navigate('/home');
+            } else {
+                navigate('/chooseplan');
+            }
+
         } catch (error) {
             console.error('Error logging in user:', error);
             alert('Failed to log in. Please check your username and password.');

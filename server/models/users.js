@@ -7,6 +7,33 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         trim: true
+    },
+    stats: {
+        sex: {
+            type: Boolean,
+            required: false
+        },
+        age: {
+            type: Number,
+            required: false
+        },
+        height: {
+            type: Number,
+            required: false
+        },
+        weight: {
+            type: Number,
+            required: false
+        },
+        bodyFatPercentage: {
+            type: Number,
+            required: false
+        }
+    },
+    activePlan: {
+        type: String,
+        enum: ['bulk', 'maintain', 'cut'],
+        // default: 'maintain'
     }
 });
 
