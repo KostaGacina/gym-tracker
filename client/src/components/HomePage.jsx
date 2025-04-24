@@ -3,12 +3,28 @@ import axios from 'axios';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Navbar from './Navbar';
+import DonutMacroChart from './DonutMacroChart';
 
 axios.defaults.withCredentials = true;
 
 export default function HomePage() {
     const [user, setUser] = useState(null);
     const [calorieIntake, setCalorieIntake] = useState(null);
+    const [dailyCalories, setDailyCalories] = useState(0);
+    const [lastUpdate, setLastUpdate] = useState(new Date());
+
+    // Function to check if it's a new day
+    const isNewDay = () => {
+        const now = new Date();
+        const lastUpdateDay = new Date(lastUpdate);
+
+        // Reset hour/minute/second to midnight for comparison
+        now.setHours(0, 0, 0, 0);
+        lastUpdateDay.setHours(0, 0, 0, 0);
+
+        return now.getTime() > lastUpdateDay.getTime();
+    };
 
     const calculateCalorieIntake = (user) => {
         if (!user?.stats) return null;
@@ -39,23 +55,38 @@ export default function HomePage() {
         return Math.round(bmr * activityMultiplier);
     };
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/user', {
-                    withCredentials: true,
-                });
-                setUser(response.data.user);
-                const calories = calculateCalorieIntake(response.data.user);
-                setCalorieIntake(calories);
-            } catch (error) {
-                console.error('Error fetching user:', error);
-                setUser(null);
-            }
-        };
+    // Function to fetch meals data
+    const fetchData = async () => {
+        try {
+            const [userResponse, mealsResponse] = await Promise.all([
+                axios.get('http://localhost:5000/user', { withCredentials: true }),
+                axios.get('http://localhost:5000/meals/today', { withCredentials: true })
+            ]);
 
-        fetchUser();
-    }, []);
+            setUser(userResponse.data.user);
+            const calories = calculateCalorieIntake(userResponse.data.user);
+            setCalorieIntake(calories);
+            setDailyCalories(mealsResponse.data.totalCalories);
+            setLastUpdate(new Date());
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setUser(null);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+
+        // Set up an interval to check for day changes
+        const interval = setInterval(() => {
+            if (isNewDay()) {
+                setDailyCalories(0); // Reset calories at midnight
+                fetchData(); // Fetch new data for the new day
+            }
+        }, 60000); // Check every minute
+
+        return () => clearInterval(interval);
+    }, [lastUpdate]);
 
     const handleLogout = async () => {
         try {
@@ -70,43 +101,65 @@ export default function HomePage() {
         }
     };
 
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
     return (
-        <Box sx={{ maxWidth: 600, margin: '0 auto', padding: 2 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Home Page
-            </Typography>
-            {user ? (
-                <>
-                    <Typography variant="h6" gutterBottom>
-                        Welcome, {user.username}!
-                    </Typography>
+        <div>
+            <Navbar />
+            <Box sx={{ maxWidth: 600, margin: '0 auto', padding: 2, marginTop: '64px' }}>
+                <Typography
+                    variant="h5"
+                    sx={{
+                        mb: 2,
+                        textAlign: 'center',
+                        color: '#e2e2e2',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    {currentDate}
+                </Typography>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Home Page
+                </Typography>
+                {user ? (
+                    <>
+                        <Typography variant="h6" gutterBottom>
+                            Welcome, {user.username}!
+                        </Typography>
 
-                    {calorieIntake && (
-                        <Box sx={{ my: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-                            <Typography variant="h5" gutterBottom color='primary'>
-                                Your Daily Calorie Target
-                            </Typography>
-                            <Typography variant="h3" color="primary">
-                                {calorieIntake} kcal
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                Based on your {user.activePlan} plan
-                            </Typography>
-                        </Box>
-                    )}
+                        {calorieIntake && (
+                            <Box sx={{ my: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                                <Typography variant="h5" gutterBottom color='primary'>
+                                    Your Daily Calorie Target
+                                </Typography>
+                                <DonutMacroChart
+                                    current={dailyCalories}
+                                    goal={calorieIntake}
+                                />
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                    Based on your {user.activePlan} plan
+                                </Typography>
+                            </Box>
+                        )}
 
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={handleLogout}
-                        sx={{ mt: 2 }}
-                    >
-                        Logout
-                    </Button>
-                </>
-            ) : (
-                <Typography>You are not logged in.</Typography>
-            )}
-        </Box>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={handleLogout}
+                            sx={{ mt: 2 }}
+                        >
+                            Logout
+                        </Button>
+                    </>
+                ) : (
+                    <Typography>You are not logged in.</Typography>
+                )}
+            </Box>
+        </div>
     );
 }

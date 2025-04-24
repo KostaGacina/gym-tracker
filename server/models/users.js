@@ -34,7 +34,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['bulk', 'maintain', 'cut'],
         // default: 'maintain'
-    }
+    },
+    meals: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Meal'
+    }],
 });
 
 userSchema.plugin(passportLocalMongoose);

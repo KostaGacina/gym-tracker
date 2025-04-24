@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const { registerUser, loginUser, logoutUser, enterStats, choosePlan } = require('./controllers/users');
+const { addMeal, getTodayMeals } = require('./controllers/meals');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
@@ -52,6 +53,8 @@ app.post('/login', loginUser);
 app.post('/logout', logoutUser);
 app.post('/enterstats', enterStats);
 app.post('/chooseplan', choosePlan);
+app.post('/meals/add', addMeal);
+app.get('/meals/today', getTodayMeals);
 
 // API endpoint to get the currently logged-in user's information
 app.get('/user', (req, res) => {
